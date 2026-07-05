@@ -1,5 +1,7 @@
+import "./polyfill.js"; // Symbol.metadata — @colyseus/* 임포트보다 반드시 먼저
 import "reflect-metadata";
 import fs from "fs";
+import { execSync } from "child_process";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Server } from "@colyseus/core";
@@ -11,7 +13,40 @@ import { ensureSchema } from "./database/pool.js";
 import { loadGameData } from "./game-data/game-data.js";
 import { MapRoom } from "./game/rooms/map.room.js";
 
+/**
+ * PM2에 같은 이름의 프로세스가 중복 등록되면 하나뿐인 Unix 소켓을 서로 뺏으며
+ * 재시작 루프에 빠진다. 가장 작은 pm_id만 살아남도록 자기/타자 정리를 수행한다.
+ */
+function dedupePm2Processes(): void {
+  const myPmId = Number(process.env.pm_id);
+  const myName = process.env.name;
+  if (!Number.isFinite(myPmId) || !myName) return;
+  try {
+    const list = JSON.parse(execSync("pm2 jlist", { encoding: "utf8", timeout: 10_000 })) as Array<{
+      pm_id: number;
+      name: string;
+    }>;
+    const twins = list.filter((p) => p.name === myName).map((p) => p.pm_id).sort((a, b) => a - b);
+    if (twins.length <= 1) return;
+    const survivor = twins[0];
+    if (myPmId !== survivor) {
+      console.warn(`[pm2-dedupe] 중복 프로세스 감지 — 본인(pm_id=${myPmId}) 종료, 생존자 pm_id=${survivor}`);
+      execSync(`pm2 delete ${myPmId}`, { timeout: 10_000 });
+      return; // pm2 delete가 SIGINT를 보냄
+    }
+    for (const twin of twins.slice(1)) {
+      console.warn(`[pm2-dedupe] 중복 프로세스 pm_id=${twin} 삭제`);
+      try { execSync(`pm2 delete ${twin}`, { timeout: 10_000 }); } catch { /* 이미 죽었으면 무시 */ }
+    }
+  } catch (e) {
+    console.warn("[pm2-dedupe] 확인 실패 (무시):", e instanceof Error ? e.message : e);
+  }
+}
+
 async function bootstrap() {
+  if (process.env.COLYSEUS_CLOUD !== undefined) {
+    dedupePm2Processes();
+  }
   loadGameData();
   await ensureSchema();
 
