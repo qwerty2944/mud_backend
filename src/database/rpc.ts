@@ -1,19 +1,28 @@
 import { pool } from "./pool.js";
+import type { PoolClient } from "pg";
 
 /**
  * 기존 Supabase Postgres에 정의된 DB 함수를 named-argument 방식으로 호출한다.
  * 모든 결과를 jsonb 배열로 수집한 뒤, 함수 성격(set/scalar)에 따라 언랩한다.
  * - scalar/json 반환 함수 → 배열 첫 요소
  * - SETOF/TABLE 반환 함수 → 배열 그대로
+ *
+ * executor를 넘기면 해당 클라이언트(트랜잭션)에서 실행한다. 미지정 시 전역 pool.
  */
 export type RpcReturns = "scalar" | "set";
+
+/** pool 과 PoolClient 모두 query 를 제공하므로 최소 인터페이스로 받는다 */
+export interface Queryable {
+  query: PoolClient["query"];
+}
 
 const IDENT = /^[a-z_][a-z0-9_]*$/;
 
 export async function callDbFunction(
   fn: string,
   args: Record<string, unknown>,
-  returns: RpcReturns
+  returns: RpcReturns,
+  executor: Queryable = pool
 ): Promise<unknown> {
   if (!IDENT.test(fn)) throw new Error(`잘못된 함수명: ${fn}`);
 
@@ -34,7 +43,7 @@ export async function callDbFunction(
   });
 
   const query = `select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) as result from ${fn}(${placeholders}) as t`;
-  const { rows } = await pool.query(query, values);
+  const { rows } = await executor.query(query, values);
   const arr = (rows[0]?.result ?? []) as unknown[];
 
   return returns === "set" ? arr : arr[0] ?? null;
