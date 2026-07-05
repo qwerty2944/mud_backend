@@ -5,7 +5,7 @@ module.exports = {
     {
       // Colyseus Cloud가 기존 PM2 앱 이름 기준으로 재시작하므로 이름은 유지한다.
       name: "mud-backend",
-      script: "build/main.js",
+      script: "build/index.js",
       instances: 1,
       exec_mode: "fork",
       env_production: {
