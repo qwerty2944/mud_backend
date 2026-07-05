@@ -1,9 +1,11 @@
 import crypto from "crypto";
-import { Injectable, BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
+import { Injectable, Inject, BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
 import { env } from "../config/env.js";
 import { pool } from "../database/pool.js";
 import { callDbFunction } from "../database/rpc.js";
 import { getMonster, getItemType, type GameMonster } from "../game-data/game-data.js";
+import { applyLevelUps } from "../game-data/leveling.js";
+import { QuestService } from "../quest/quest.service.js";
 
 /**
  * 서버 권위 전투 보상.
@@ -36,6 +38,8 @@ export interface BattleCompleteResult {
 
 @Injectable()
 export class BattleService {
+  constructor(@Inject(QuestService) private readonly quest: QuestService) {}
+
   /** 재사용 방지 (단일 인스턴스 기준) */
   private usedJti = new Map<string, number>();
 
@@ -61,18 +65,25 @@ export class BattleService {
     }
   }
 
-  async start(userId: string, monsterId: string): Promise<{ battleToken: string; monster: { id: string; level: number } }> {
+  async start(
+    userId: string,
+    monsterId: string,
+    opts: { skipFatigue?: boolean } = {}
+  ): Promise<{ battleToken: string; monster: { id: string; level: number } }> {
     const monster = getMonster(monsterId);
     if (!monster) throw new NotFoundException({ error: `알 수 없는 몬스터: ${monsterId}` });
 
-    // 전투 시작 = 피로도 소모 (기존 DB 함수)
-    const fatigue = (await callDbFunction(
-      "consume_fatigue",
-      { p_user_id: userId, p_amount: 3 },
-      "scalar"
-    )) as { success?: boolean; message?: string } | null;
-    if (fatigue && fatigue.success === false) {
-      throw new ConflictException({ error: fatigue.message ?? "피로도가 부족합니다", code: "NOT_ENOUGH_FATIGUE" });
+    // 전투 시작 = 피로도 소모 (기존 DB 함수).
+    // 던전은 입장 시 1회만 소모하므로 웨이브별 start에서는 skipFatigue로 건너뛴다.
+    if (!opts.skipFatigue) {
+      const fatigue = (await callDbFunction(
+        "consume_fatigue",
+        { p_user_id: userId, p_amount: 3 },
+        "scalar"
+      )) as { success?: boolean; message?: string } | null;
+      if (fatigue && fatigue.success === false) {
+        throw new ConflictException({ error: fatigue.message ?? "피로도가 부족합니다", code: "NOT_ENOUGH_FATIGUE" });
+      }
     }
 
     const payload: BattleTokenPayload = {
@@ -136,15 +147,8 @@ export class BattleService {
     const exp = this.calculateExpBonus(monster, playerLevel);
     const gold = monster.rewards.gold ?? 0;
 
-    // 레벨업 (필요 exp = level × 100)
-    let newLevel = playerLevel;
-    let newExp = Number(char.experience || 0) + exp;
-    let levelsGained = 0;
-    while (newExp >= newLevel * 100) {
-      newExp -= newLevel * 100;
-      newLevel++;
-      levelsGained++;
-    }
+    // 레벨업 (공용 헬퍼 — quest/dungeon과 동일 공식)
+    const { newLevel, newExp, levelsGained } = applyLevelUps(playerLevel, Number(char.experience || 0), exp);
 
     const totalGold = Number(char.gold || 0) + gold;
 
@@ -187,6 +191,13 @@ export class BattleService {
       } catch (e) {
         console.error("[battle] 카르마 갱신 실패:", e instanceof Error ? e.message : e);
       }
+    }
+
+    // 퀘스트 kill 진행도 증가 (비치명 — 실패해도 전투 정산은 유효)
+    try {
+      await this.quest.incrementKillProgress(userId, monster.id);
+    } catch (e) {
+      console.error("[battle] 퀘스트 진행도 갱신 실패:", e instanceof Error ? e.message : e);
     }
 
     return {

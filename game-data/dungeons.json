@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "description": "던전 MVP — 웨이브 연속전투 + 보스 + 클리어 보상",
+  "dungeons": [
+    {
+      "id": "ancient_ruins_depths",
+      "nameKo": "고대 유적 심층부",
+      "descriptionKo": "고대 유적 지하로 이어지는 봉인된 통로. 네 개의 시련을 넘어 리치를 처단하라.",
+      "icon": "🏛️",
+      "entryMapId": "ancient_ruins",
+      "minLevel": 10,
+      "fatigueCost": 10,
+      "waves": ["stone_golem", "ancient_spirit", "cursed_scholar", "ancient_lich"],
+      "clearRewards": {
+        "exp": 500,
+        "gold": 400,
+        "items": [
+          { "itemId": "elixir", "quantity": 2 },
+          { "itemId": "scroll_resurrection", "quantity": 1 }
+        ]
+      }
+    }
+  ]
+}

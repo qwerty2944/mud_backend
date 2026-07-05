@@ -20,6 +20,8 @@ const FILES = [
   "items/consumables.json",
   "items/materials.json",
   "items/misc.json",
+  "quests/quests.json",
+  "world/dungeons.json",
 ];
 
 if (!fs.existsSync(FRONTEND_DATA)) {

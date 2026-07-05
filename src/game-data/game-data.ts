@@ -38,6 +38,47 @@ interface HealerNpc {
   services?: { healing?: Record<string, HealerService | number> };
 }
 
+// ============ 퀘스트 ============
+
+export type QuestObjectiveType = "kill" | "collect" | "visit";
+
+export interface QuestObjective {
+  type: QuestObjectiveType;
+  monsterId?: string;
+  itemId?: string;
+  mapId?: string;
+  count?: number;
+}
+
+export interface QuestReward {
+  exp: number;
+  gold: number;
+  items?: { itemId: string; quantity: number }[];
+}
+
+export interface GameQuest {
+  id: string;
+  npcId: string;
+  nameKo: string;
+  descriptionKo: string;
+  minLevel: number;
+  objective: QuestObjective;
+  rewards: QuestReward;
+}
+
+// ============ 던전 ============
+
+export interface GameDungeon {
+  id: string;
+  nameKo: string;
+  descriptionKo: string;
+  entryMapId: string;
+  minLevel: number;
+  fatigueCost: number;
+  waves: string[]; // 몬스터 id 순서
+  clearRewards: QuestReward;
+}
+
 const DATA_DIR = path.resolve(process.cwd(), "game-data");
 
 function loadJson<T>(file: string): T {
@@ -47,6 +88,10 @@ function loadJson<T>(file: string): T {
 const monstersById = new Map<string, GameMonster>();
 const healersById = new Map<string, HealerNpc>();
 const itemTypeById = new Map<string, string>();
+const questsById = new Map<string, GameQuest>();
+const dungeonsById = new Map<string, GameDungeon>();
+/** kill 퀘스트: 몬스터 id → 해당 몬스터를 처치 목표로 하는 퀘스트 id 목록 */
+const killQuestIdsByMonsterMap = new Map<string, string[]>();
 
 export function loadGameData(): void {
   const monsterData = loadJson<{ monsters: GameMonster[] }>("monsters.json");
@@ -65,7 +110,32 @@ export function loadGameData(): void {
     }
   }
 
-  console.log(`🎲 게임 데이터 로드: 몬스터 ${monstersById.size}, 치료사 ${healersById.size}, 아이템 ${itemTypeById.size}`);
+  // 퀘스트
+  try {
+    const questData = loadJson<{ quests: GameQuest[] }>("quests.json");
+    for (const q of questData.quests ?? []) {
+      questsById.set(q.id, q);
+      if (q.objective.type === "kill" && q.objective.monsterId) {
+        const list = killQuestIdsByMonsterMap.get(q.objective.monsterId) ?? [];
+        list.push(q.id);
+        killQuestIdsByMonsterMap.set(q.objective.monsterId, list);
+      }
+    }
+  } catch {
+    console.warn("[game-data] quests.json 없음 — 퀘스트 비활성");
+  }
+
+  // 던전
+  try {
+    const dungeonData = loadJson<{ dungeons: GameDungeon[] }>("dungeons.json");
+    for (const d of dungeonData.dungeons ?? []) dungeonsById.set(d.id, d);
+  } catch {
+    console.warn("[game-data] dungeons.json 없음 — 던전 비활성");
+  }
+
+  console.log(
+    `🎲 게임 데이터 로드: 몬스터 ${monstersById.size}, 치료사 ${healersById.size}, 아이템 ${itemTypeById.size}, 퀘스트 ${questsById.size}, 던전 ${dungeonsById.size}`
+  );
 }
 
 export function getItemType(itemId: string): string {
@@ -74,6 +144,27 @@ export function getItemType(itemId: string): string {
 
 export function getMonster(id: string): GameMonster | undefined {
   return monstersById.get(id);
+}
+
+export function getQuest(id: string): GameQuest | undefined {
+  return questsById.get(id);
+}
+
+export function getAllQuests(): GameQuest[] {
+  return [...questsById.values()];
+}
+
+/** 특정 몬스터를 처치 목표로 하는 kill 퀘스트 id 목록 */
+export function killQuestIdsByMonster(monsterId: string): string[] {
+  return killQuestIdsByMonsterMap.get(monsterId) ?? [];
+}
+
+export function getDungeon(id: string): GameDungeon | undefined {
+  return dungeonsById.get(id);
+}
+
+export function getAllDungeons(): GameDungeon[] {
+  return [...dungeonsById.values()];
 }
 
 /** 치료사의 부상 등급별 치료비 (severity: light/medium/critical) */
