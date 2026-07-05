@@ -50,6 +50,5 @@ export const RPC_ALLOWLIST: Record<string, RpcMeta> = {
   record_battle_result: { returns: "scalar", ownCharacter: true },
   increment_combat_stat: { returns: "scalar", ownCharacter: true },
 
-  // 채팅
-  get_recent_messages: { returns: "set" },
+
 };

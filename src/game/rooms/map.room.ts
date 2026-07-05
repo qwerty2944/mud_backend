@@ -1,13 +1,12 @@
 import { Room, type Client } from "@colyseus/core";
 import { Schema, MapSchema, type } from "@colyseus/schema";
 import { verifyToken } from "../../auth/jwt.js";
-import { pool } from "../../database/pool.js";
 import { callDbFunction } from "../../database/rpc.js";
 
 /**
  * 맵 단위 룸. Supabase Realtime의 `map:{mapId}` 채널을 대체한다.
  * - presence → state.players (MapSchema)
- * - chat_message / whisper broadcast → onMessage 릴레이 (+ 서버측 DB 저장/크리스탈 검증)
+ * - chat_message / whisper → onMessage 릴레이 (DB 저장 없음, 귓말은 크리스탈 검증)
  * - duel_* broadcast → 그대로 릴레이 (페이로드는 클라이언트 소유)
  */
 
@@ -64,7 +63,6 @@ export class MapRoom extends Room<MapRoomState> {
       };
 
       this.broadcast("chat_message", message, { except: client });
-      this.saveChat(message).catch((e) => console.error("[chat save]", e));
     });
 
     // ---- 귓속말: 크리스탈 충전 검증 후 대상에게만 전달 ----
@@ -108,10 +106,7 @@ export class MapRoom extends Room<MapRoomState> {
           code: "RECIPIENT_OFFLINE",
           message: `${payload.recipientName}님은 현재 이 지역에 없습니다`,
         });
-        return;
       }
-
-      this.saveChat(message).catch((e) => console.error("[whisper save]", e));
     });
 
     // ---- 결투 이벤트: 페이로드 그대로 릴레이 (클라이언트가 필터링) ----
@@ -151,20 +146,5 @@ export class MapRoom extends Room<MapRoomState> {
 
   onLeave(client: Client) {
     this.state.players.delete(client.sessionId);
-  }
-
-  private async saveChat(message: ChatPayload): Promise<void> {
-    await pool.query(
-      `insert into chat_messages (map_id, sender_id, sender_name, message_type, recipient_name, content)
-       values ($1, $2, $3, $4, $5, $6)`,
-      [
-        message.mapId,
-        message.senderId,
-        message.senderName,
-        message.messageType,
-        message.recipientName ?? null,
-        message.content,
-      ]
-    );
   }
 }
