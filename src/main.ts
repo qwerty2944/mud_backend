@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import fs from "fs";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Server } from "@colyseus/core";
@@ -25,8 +26,19 @@ async function bootstrap() {
   // 같은 mapId끼리 같은 룸에 배정
   gameServer.define("map", MapRoom).filterBy(["mapId"]);
 
-  await app.listen(env.PORT);
-  console.log(`🎮 TALEBOUND 서버 실행 중: http://localhost:${env.PORT}`);
+  // Colyseus Cloud는 인스턴스별 Unix 소켓(/run/colyseus/{port}.sock)으로 프록시한다
+  const isCloud = process.env.COLYSEUS_CLOUD !== undefined;
+  const instance = Number(process.env.NODE_APP_INSTANCE || "0");
+  if (isCloud) {
+    const socketPath = `/run/colyseus/${2567 + instance}.sock`;
+    try { fs.unlinkSync(socketPath); } catch { /* 없으면 무시 */ }
+    await app.listen(socketPath);
+    console.log(`🎮 TALEBOUND 서버 실행 중: ${socketPath}`);
+  } else {
+    await app.listen(env.PORT + instance);
+    console.log(`🎮 TALEBOUND 서버 실행 중: http://localhost:${env.PORT + instance}`);
+  }
+  if (typeof process.send === "function") process.send("ready");
   console.log(`   - REST API: /api/*`);
   console.log(`   - Colyseus 모니터: /colyseus`);
 }
