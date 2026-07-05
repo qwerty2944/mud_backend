@@ -5,6 +5,7 @@ import { pool } from "../database/pool.js";
 import { callDbFunction } from "../database/rpc.js";
 import { getMonster, getItemType, type GameMonster } from "../game-data/game-data.js";
 import { applyLevelUps } from "../game-data/leveling.js";
+import { aggregateTraitEconomy } from "../game-data/traits.js";
 import { QuestService } from "../quest/quest.service.js";
 
 /**
@@ -137,15 +138,20 @@ export class BattleService {
 
     // ---- 승리 정산 ----
     const { rows } = await pool.query(
-      `select level, experience, gold from characters where user_id = $1`,
+      `select level, experience, gold, traits from characters where user_id = $1`,
       [userId]
     );
     const char = rows[0];
     if (!char) throw new NotFoundException({ error: "캐릭터가 없습니다" });
 
     const playerLevel = Number(char.level) || 1;
-    const exp = this.calculateExpBonus(monster, playerLevel);
-    const gold = monster.rewards.gold ?? 0;
+
+    // 특성 경제 효과 (exp/gold 배율, 희귀 드롭 보너스).
+    // traits가 null/빈값이면 배율 1.0 → 기존 캐릭터 회귀 없음.
+    const econ = aggregateTraitEconomy(char.traits);
+
+    const exp = Math.round(this.calculateExpBonus(monster, playerLevel) * econ.expMultiplier);
+    const gold = Math.round((monster.rewards.gold ?? 0) * econ.goldMultiplier);
 
     // 레벨업 (공용 헬퍼 — quest/dungeon과 동일 공식)
     const { newLevel, newExp, levelsGained } = applyLevelUps(playerLevel, Number(char.experience || 0), exp);
@@ -159,8 +165,8 @@ export class BattleService {
       [userId, newLevel, newExp, totalGold, Math.max(1, hp), mp]
     );
 
-    // 드랍 롤 (서버) + 인벤토리 지급
-    const drops = this.rollDrops(monster);
+    // 드랍 롤 (서버) + 인벤토리 지급 (특성 희귀 드롭 보너스 반영)
+    const drops = this.rollDrops(monster, econ.rareDropBonus);
     for (const drop of drops) {
       try {
         await callDbFunction(
@@ -220,11 +226,18 @@ export class BattleService {
     return monster.rewards.exp;
   }
 
-  /** 프론트 rollDrops와 동일 공식 */
-  private rollDrops(monster: GameMonster): { itemId: string; itemType: string; quantity: number }[] {
+  /**
+   * 프론트 rollDrops와 동일 공식.
+   * @param rareDropBonus 특성 희귀 드롭 보너스 (0~1, 각 드롭 chance에 가산)
+   */
+  private rollDrops(
+    monster: GameMonster,
+    rareDropBonus = 0
+  ): { itemId: string; itemType: string; quantity: number }[] {
     const out: { itemId: string; itemType: string; quantity: number }[] = [];
     for (const drop of monster.drops ?? []) {
-      if (Math.random() >= (drop.chance ?? 0)) continue;
+      const chance = Math.min(1, (drop.chance ?? 0) + rareDropBonus);
+      if (Math.random() >= chance) continue;
       const [min, max] = drop.quantity ?? [1, 1];
       const quantity = min + Math.floor(Math.random() * (max - min + 1));
       out.push({ itemId: drop.itemId, itemType: getItemType(drop.itemId), quantity });
