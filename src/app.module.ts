@@ -5,6 +5,8 @@ import { TablesModule } from "./tables/tables.module.js";
 import { CronModule } from "./cron/cron.module.js";
 import { BattleModule } from "./battle/battle.module.js";
 import { NpcModule } from "./npc/npc.module.js";
+import { QuestModule } from "./quest/quest.module.js";
+import { DungeonModule } from "./dungeon/dungeon.module.js";
 
 @Controller()
 class HealthController {
@@ -15,7 +17,7 @@ class HealthController {
 }
 
 @Module({
-  imports: [AuthModule, RpcModule, TablesModule, CronModule, BattleModule, NpcModule],
+  imports: [AuthModule, RpcModule, TablesModule, CronModule, BattleModule, NpcModule, QuestModule, DungeonModule],
   controllers: [HealthController],
 })
 export class AppModule {}

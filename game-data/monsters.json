@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "generatedAt": "2026-07-05T07:22:34.411Z",
+  "generatedAt": "2026-07-05T09:31:34.926Z",
   "metadata": {
     "version": "1.0.0",
     "description": "몬스터 시스템 메타데이터",
@@ -832,8 +832,8 @@
         }
       },
       "rewards": {
-        "exp": 109,
-        "gold": 30
+        "exp": 300,
+        "gold": 150
       },
       "drops": [
         {
@@ -870,20 +870,25 @@
         }
       ],
       "behavior": "territorial",
+      "maxAp": 13,
+      "actionWeights": {
+        "basicAttack": 20,
+        "specialSkill": 80,
+        "borrowedAbility": 0
+      },
       "abilities": [
         {
-          "id": "split",
-          "nameKo": "분열",
-          "nameEn": "Split",
-          "description": "HP가 50% 이하가 되면 작은 슬라임 2마리로 분열한다.",
-          "trigger": "hp_below_50"
+          "abilityId": "slime_smash",
+          "level": 1,
+          "weight": 50
         },
         {
-          "id": "absorb",
-          "nameKo": "흡수",
-          "nameEn": "Absorb",
-          "description": "주변의 작은 슬라임을 흡수하여 체력을 회복한다.",
-          "cooldown": 5
+          "abilityId": "corrosive_spray",
+          "level": 1,
+          "weight": 50,
+          "condition": {
+            "hpBelow": 50
+          }
         }
       ],
       "bossSchedule": "daily_noon",
@@ -3382,8 +3387,8 @@
         }
       },
       "rewards": {
-        "exp": 300,
-        "gold": 100
+        "exp": 600,
+        "gold": 300
       },
       "drops": [
         {
@@ -3428,27 +3433,22 @@
         }
       ],
       "behavior": "territorial",
+      "maxAp": 13,
+      "actionWeights": {
+        "basicAttack": 15,
+        "specialSkill": 85,
+        "borrowedAbility": 0
+      },
       "abilities": [
         {
-          "id": "nature_wrath",
-          "nameKo": "자연의 분노",
-          "nameEn": "Nature's Wrath",
-          "description": "대지의 힘으로 광역 피해",
-          "cooldown": 4
+          "abilityId": "natures_wrath",
+          "level": 1,
+          "weight": 55
         },
         {
-          "id": "regeneration",
-          "nameKo": "재생",
-          "nameEn": "Regeneration",
-          "description": "매 턴 HP 20 회복",
-          "passive": true
-        },
-        {
-          "id": "summon_treants",
-          "nameKo": "트렌트 소환",
-          "nameEn": "Summon Treants",
-          "description": "HP 50% 이하 시 어린 트렌트 2마리 소환",
-          "trigger": "hp_below_50"
+          "abilityId": "entangling_roots",
+          "level": 1,
+          "weight": 45
         }
       ],
       "bossSchedule": "daily_noon",
@@ -3937,8 +3937,8 @@
         }
       },
       "rewards": {
-        "exp": 230,
-        "gold": 200
+        "exp": 800,
+        "gold": 500
       },
       "drops": [
         {
@@ -3983,34 +3983,25 @@
         }
       ],
       "behavior": "aggressive",
+      "maxAp": 14,
+      "actionWeights": {
+        "basicAttack": 15,
+        "specialSkill": 85,
+        "borrowedAbility": 0
+      },
       "abilities": [
         {
-          "id": "dark_bolt",
-          "nameKo": "암흑 화살",
-          "nameEn": "Dark Bolt",
-          "description": "강력한 암흑 마법 공격",
-          "baseDamage": 40
+          "abilityId": "dark_nova",
+          "level": 1,
+          "weight": 50
         },
         {
-          "id": "life_drain",
-          "nameKo": "생명력 흡수",
-          "nameEn": "Life Drain",
-          "description": "적의 HP를 흡수하여 회복",
-          "cooldown": 3
-        },
-        {
-          "id": "summon_undead",
-          "nameKo": "언데드 소환",
-          "nameEn": "Summon Undead",
-          "description": "HP 70% 이하 시 해골 전사 2마리 소환",
-          "trigger": "hp_below_70"
-        },
-        {
-          "id": "phylactery_revival",
-          "nameKo": "필락테리 부활",
-          "nameEn": "Phylactery Revival",
-          "description": "첫 사망 시 HP 30%로 부활 (1회)",
-          "trigger": "on_death"
+          "abilityId": "soul_drain",
+          "level": 1,
+          "weight": 50,
+          "condition": {
+            "hpBelow": 60
+          }
         }
       ],
       "bossSchedule": "weekly_saturday",

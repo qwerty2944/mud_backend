@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "description": "시작 지역 퀘스트 MVP (kill/collect/visit)",
+  "quests": [
+    {
+      "id": "rabbit_hunt",
+      "npcId": "guard_captain",
+      "nameKo": "토끼 사냥",
+      "descriptionKo": "마을 밭을 망치는 토끼 3마리를 처치해주게.",
+      "minLevel": 1,
+      "objective": { "type": "kill", "monsterId": "rabbit", "count": 3 },
+      "rewards": { "exp": 30, "gold": 20, "items": [{ "itemId": "bread", "quantity": 2 }] }
+    },
+    {
+      "id": "squirrel_cull",
+      "npcId": "guard_captain",
+      "nameKo": "다람쥐 소탕",
+      "descriptionKo": "숲 입구에 다람쥐가 너무 많아졌네. 3마리만 정리해주게.",
+      "minLevel": 2,
+      "objective": { "type": "kill", "monsterId": "squirrel", "count": 3 },
+      "rewards": { "exp": 60, "gold": 35, "items": [{ "itemId": "health_potion_small", "quantity": 2 }] }
+    },
+    {
+      "id": "slime_extermination",
+      "npcId": "guard_captain",
+      "nameKo": "슬라임 박멸",
+      "descriptionKo": "끈적한 초록 슬라임 4마리를 처치하면 사례하겠네.",
+      "minLevel": 3,
+      "objective": { "type": "kill", "monsterId": "green_slime", "count": 4 },
+      "rewards": { "exp": 110, "gold": 55, "items": [{ "itemId": "mana_potion_small", "quantity": 2 }] }
+    },
+    {
+      "id": "wolf_pack",
+      "npcId": "guard_captain",
+      "nameKo": "늑대 무리 토벌",
+      "descriptionKo": "숲의 늑대 3마리가 여행자를 위협하고 있네. 처치해주게.",
+      "minLevel": 5,
+      "objective": { "type": "kill", "monsterId": "wolf", "count": 3 },
+      "rewards": { "exp": 180, "gold": 90, "items": [{ "itemId": "health_potion_medium", "quantity": 2 }] }
+    },
+    {
+      "id": "rabbit_fur_collect",
+      "npcId": "innkeeper",
+      "nameKo": "토끼 가죽 모으기",
+      "descriptionKo": "겨울 이불을 만들려면 토끼 가죽 3장이 필요해요.",
+      "minLevel": 1,
+      "objective": { "type": "collect", "itemId": "rabbit_fur", "count": 3 },
+      "rewards": { "exp": 40, "gold": 30, "items": [{ "itemId": "stew", "quantity": 1 }] }
+    },
+    {
+      "id": "spider_silk_gathering",
+      "npcId": "innkeeper",
+      "nameKo": "거미줄 채집",
+      "descriptionKo": "질긴 거미줄 3개를 가져다 주시면 옷을 지어드릴게요.",
+      "minLevel": 6,
+      "objective": { "type": "collect", "itemId": "spider_silk", "count": 3 },
+      "rewards": { "exp": 150, "gold": 80, "items": [{ "itemId": "health_potion_medium", "quantity": 1 }] }
+    },
+    {
+      "id": "deep_forest_scout",
+      "npcId": "village_elder",
+      "nameKo": "깊은 숲 정찰",
+      "descriptionKo": "깊은 숲으로 들어가 그곳의 상황을 살펴보고 오게.",
+      "minLevel": 5,
+      "objective": { "type": "visit", "mapId": "deep_forest" },
+      "rewards": { "exp": 120, "gold": 60, "items": [{ "itemId": "mana_potion_medium", "quantity": 1 }] }
+    },
+    {
+      "id": "ancient_ruins_expedition",
+      "npcId": "village_elder",
+      "nameKo": "고대 유적 탐사",
+      "descriptionKo": "고대 유적에 발을 들여 그 존재를 확인하고 오게. 위험할 것이야.",
+      "minLevel": 10,
+      "objective": { "type": "visit", "mapId": "ancient_ruins" },
+      "rewards": { "exp": 300, "gold": 150, "items": [{ "itemId": "elixir", "quantity": 1 }] }
+    }
+  ]
+}
