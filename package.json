@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "build": "rimraf build && tsc -p tsconfig.build.json",
+    "start": "node build/index.js",
     "backfill-users": "tsx scripts/backfill-users.ts"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/pg": "^8.11.10",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "rimraf": "^6.0.1"
   }
 }

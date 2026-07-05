@@ -12,5 +12,6 @@ export const env = {
   DATABASE_URL: required("DATABASE_URL"),
   JWT_SECRET: required("JWT_SECRET"),
   PORT: Number(process.env.PORT || 2567),
-  CORS_ORIGIN: process.env.CORS_ORIGIN || "http://localhost:3000",
+  // 콤마로 여러 origin 허용 (예: "https://mug-web.vercel.app,http://localhost:3000")
+  CORS_ORIGIN: (process.env.CORS_ORIGIN || "http://localhost:3000").split(",").map((s) => s.trim()),
 };
