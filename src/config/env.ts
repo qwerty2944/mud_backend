@@ -1,4 +1,13 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+
+// Colyseus Cloud는 대시보드 환경변수를 .env.production 으로 심어준다.
+// 로컬은 .env 사용. (이미 설정된 값은 덮어쓰지 않음)
+const nodeEnv = process.env.NODE_ENV || "development";
+if (process.env.REGION) {
+  dotenv.config({ path: `.env.${process.env.REGION}.${nodeEnv}` });
+}
+dotenv.config({ path: `.env.${nodeEnv}` });
+dotenv.config();
 
 function required(name: string): string {
   const value = process.env[name];
