@@ -1,8 +1,8 @@
 import { Room, type Client } from "@colyseus/core";
 import { Schema, MapSchema, type } from "@colyseus/schema";
-import { verifyToken } from "../auth/jwt.js";
-import { pool } from "../db/pool.js";
-import { callDbFunction } from "../db/rpc.js";
+import { verifyToken } from "../../auth/jwt.js";
+import { pool } from "../../database/pool.js";
+import { callDbFunction } from "../../database/rpc.js";
 
 /**
  * 맵 단위 룸. Supabase Realtime의 `map:{mapId}` 채널을 대체한다.

@@ -1,4 +1,4 @@
-import type { RpcReturns } from "../db/rpc.js";
+import type { RpcReturns } from "../database/rpc.js";
 
 /**
  * 프론트엔드가 호출할 수 있는 DB 함수 allowlist.

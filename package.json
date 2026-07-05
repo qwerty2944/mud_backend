@@ -1,12 +1,12 @@
 {
-  "name": "@mud/backend",
+  "name": "@talebound/backend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/main.ts",
     "build": "rimraf build && tsc -p tsconfig.build.json",
-    "start": "node build/index.js",
+    "start": "node build/main.js",
     "backfill-users": "tsx scripts/backfill-users.ts"
   },
   "dependencies": {
@@ -14,13 +14,18 @@
     "@colyseus/monitor": "^0.16.0",
     "@colyseus/schema": "^3.0.0",
     "@colyseus/ws-transport": "^0.16.0",
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-express": "^11.1.27",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -30,8 +35,8 @@
     "@types/node": "^22.10.2",
     "@types/node-cron": "^3.0.11",
     "@types/pg": "^8.11.10",
+    "rimraf": "^6.0.1",
     "tsx": "^4.21.0",
-    "typescript": "^5",
-    "rimraf": "^6.0.1"
+    "typescript": "^5"
   }
 }

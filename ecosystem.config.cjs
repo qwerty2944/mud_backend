@@ -3,8 +3,8 @@
 module.exports = {
   apps: [
     {
-      name: "mud-backend",
-      script: "build/index.js",
+      name: "talebound-backend",
+      script: "build/main.js",
       instances: 1,
       exec_mode: "fork",
       env_production: {
