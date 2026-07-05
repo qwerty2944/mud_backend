@@ -1,3 +1,4 @@
+import fs from "fs";
 import dotenv from "dotenv";
 
 // Colyseus Cloud는 대시보드 환경변수를 .env.production 으로 심어준다.
@@ -12,7 +13,14 @@ dotenv.config();
 function required(name: string): string {
   const value = process.env[name];
   if (!value) {
-    throw new Error(`환경변수 ${name}이(가) 설정되지 않았습니다. server/.env를 확인하세요.`);
+    // 배포 환경 진단: cwd와 존재하는 .env* 파일 목록을 에러에 포함
+    let envFiles = "?";
+    try {
+      envFiles = fs.readdirSync(process.cwd()).filter((f) => f.startsWith(".env")).join(",") || "(없음)";
+    } catch { /* noop */ }
+    throw new Error(
+      `환경변수 ${name}이(가) 설정되지 않았습니다. cwd=${process.cwd()} NODE_ENV=${process.env.NODE_ENV} envFiles=${envFiles}`
+    );
   }
   return value;
 }
